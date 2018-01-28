@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 
 use serde_json;
+use futures::unsync::mpsc;
 
 use model::*;
 use internal::Status;

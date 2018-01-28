@@ -27,6 +27,7 @@ extern crate reqwest;
 extern crate websocket;
 extern crate futures;
 extern crate tokio_core;
+extern crate tokio_timer;
 
 extern crate byteorder;
 extern crate time;
@@ -480,11 +481,9 @@ impl Discord {
 			.header(reqwest::header::Authorization(self.token.clone()))
 			.header(reqwest::header::UserAgent::new(USER_AGENT.to_owned()))
 			.multipart(
-				reqwest::MultipartRequest::new()
-					.field(reqwest::MultipartField::param("content", text.into()))
-					.field(reqwest::MultipartField::reader("file", file)
-							.mime(reqwest::mime::APPLICATION_OCTET_STREAM)
-							.file_name(filename.into()))
+				reqwest::multipart::Form::new()
+					.text("content", text.into())
+					.file("file", file)?
 			);
 		
 		from_reader(try!(check_status(request.send())))
@@ -1193,11 +1192,13 @@ fn sleep_ms(millis: u64) {
 }
 
 fn recv_json<F, T>(message: Message, decode: F) -> Result<T> where F: FnOnce(serde_json::Value) -> Result<T> {
-		if message.opcode == Type::Close {
+	    use websocket::dataframe::Opcode;	
+    
+    if message.opcode() == Opcode::Close {
 			Err(Error::Closed(message.cd_status_code, String::from_utf8_lossy(&message.payload).into_owned()))
-		} else if message.opcode == Type::Binary || message.opcode == Type::Text {
+		} else if message.opcode() == Opcode::Binary || message.opcode() == Opcode::Text {
 			let mut payload_vec;
-			let payload = if message.opcode == Type::Binary {
+			let payload = if message.opcode() == Opcode::Binary {
 				use std::io::Read;
 				payload_vec = Vec::new();
 				try!(flate2::read::ZlibDecoder::new(&message.payload[..]).read_to_end(&mut payload_vec));
