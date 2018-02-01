@@ -1151,7 +1151,8 @@ impl LiveServer {
 		}
 		// No SEND_MESSAGES => no message-sending-related actions
 		if !permissions.contains(Permissions::SEND_MESSAGES) {
-			permissions &= !(Permissions::SEND_TTS_MESSAGES | Permissions::MENTION_EVERYONE | Permissions::EMBED_LINKS | Permissions::ATTACH_FILES);
+			permissions &= !(Permissions::SEND_TTS_MESSAGES | Permissions::MENTION_EVERYONE | 
+							Permissions::EMBED_LINKS | Permissions::ATTACH_FILES);
 		}
 		// No READ_MESSAGES => no channel actions
 		if !permissions.contains(Permissions::READ_MESSAGES) {
